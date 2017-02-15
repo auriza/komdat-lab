@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Auriza Akbar">
+  <meta name="dcterms.date" content="2015-01-01">
+  <title>Komunikasi Data dan Jaringan Komputer Praktikum #4</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="etc/style.css">
+</head>
+<body>
+<header>
+<h1 class="title">Komunikasi Data dan Jaringan Komputer Praktikum #4</h1>
+<h2 class="author">Auriza Akbar</h2>
+<h3 class="date">2015</h3>
+</header>
+<nav id="TOC">
+<ul>
+<li><a href="#pemrograman-soket-tcp">Pemrograman Soket TCP</a><ul>
+<li><a href="#alur-penggunaan-soket-tcp">Alur Penggunaan Soket TCP</a></li>
+<li><a href="#kode-program-untuk-server">Kode Program untuk Server</a></li>
+<li><a href="#kode-program-untuk-klien">Kode Program untuk Klien</a></li>
+<li><a href="#tugas">Tugas</a></li>
+<li><a href="#referensi">Referensi</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="pemrograman-soket-tcp">Pemrograman Soket TCP</h1>
+<!--
+TODO:
+PF_INET
+send()/recv()
+listenfd -> serversock
+connfd   -> clientsock
+
+AGENDA:
+write code line-by-line
+explanation every function
+-->
+<p>Tujuan: mahasiswa akan dapat membuat program soket pada Linux</p>
+<p>Soket adalah abstraksi untuk komunikasi jaringan, sama halnya seperti <em>file</em> adalah abstraksi untuk komunikasi dalam <em>filesystem</em>. Praktikum kali ini membahas fungsi I/O jaringan dasar untuk Linux. Aplikasi yang melakukan I/O jaringan harus bisa melakukan fungsi dasar berikut ini:</p>
+<ul>
+<li><code>open</code>: mempersiapkan untuk operasi I/O</li>
+<li><code>close</code>: memberhentikan operasi sebelumnya dan mengembalikan sumber daya</li>
+<li><code>read</code>: mendapatkan data dan menempatkannya ke dalam memori aplikasi</li>
+<li><code>write</code>: menuliskan data dari memori aplikasi dan mengirimkan kontrol</li>
+<li><code>control</code> (ioctl): mengatur opsi, seperti ukuran <em>buffer</em> dan perilaku koneksi</li>
+</ul>
+<p>Intinya, anggap saja soket adalah sebuah <em>file</em> yang bisa dibuka, ditutup, dibaca, dan ditulis. Soket dikenali dengan sebuah <em>integer</em> yang disebut <em>socket descriptor</em> (pointer ke struktur data yang berisi deskripsi soket). Struktur data tersebut berisi: jenis soket, alamat dan port lokal yang dipakai, dan alamat dan port <em>remote</em> yang akan menerima komunikasi dari soket.</p>
+<p>Penggunaan soket terbagi menjadi dua:</p>
+<ul>
+<li>Soket pasif: soket yang bertindak sebagai server dan menunggu koneksi yang masuk</li>
+<li>Soket aktif: soket yang digunakan oleh program klien untuk menginisialisasi koneksi ke server</li>
+</ul>
+<h2 id="alur-penggunaan-soket-tcp">Alur Penggunaan Soket TCP</h2>
+<figure>
+<img src="etc/4/socket-tcp.png" alt="TCP socket call" /><figcaption>TCP socket call</figcaption>
+</figure>
+<h2 id="kode-program-untuk-server">Kode Program untuk Server</h2>
+<p><code>server.c</code></p>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="ot">#include &lt;stdlib.h&gt;</span>
+<span class="ot">#include &lt;unistd.h&gt;</span>
+<span class="ot">#include &lt;arpa/inet.h&gt;</span>
+
+<span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span> *argv[])
+{
+    <span class="dt">int</span> listenfd;
+    <span class="dt">int</span> connfd;
+    <span class="dt">int</span> port = <span class="dv">2000</span>;
+
+    <span class="co">/* 1. Membuat soket */</span>
+    listenfd = socket(AF_INET, SOCK_STREAM, <span class="dv">0</span>);
+
+    <span class="kw">struct</span> sockaddr_in server_addr = {              <span class="co">/* alamat server */</span>
+        .sin_family = AF_INET,
+        .sin_port = htons(port),
+        .sin_addr.s_addr = INADDR_ANY
+    };
+
+    <span class="co">/* 2. Memberikan alamat ke soket */</span>
+    bind(listenfd, (<span class="kw">struct</span> sockaddr*) &amp;server_addr, <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in));
+
+    <span class="co">/* 3. Listen -&gt; soket pasif */</span>
+    listen(listenfd, <span class="dv">5</span>);
+    printf(<span class="st">&quot;Listening...</span><span class="ch">\n</span><span class="st">&quot;</span>);
+
+    <span class="kw">while</span> (<span class="dv">1</span>) {
+
+        <span class="co">/* alamat klien */</span>
+        <span class="kw">struct</span> sockaddr_in client_addr;
+        socklen_t client_addr_size = <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in);
+
+        <span class="co">/* 4. Membuat soket untuk menerima koneksi dari klien */</span>
+        connfd = accept(listenfd, (<span class="kw">struct</span> sockaddr*) &amp;client_addr, &amp;client_addr_size);
+
+        <span class="co">/* cetak alamat klien */</span>
+        printf(<span class="st">&quot;Connected with %s:%d.</span><span class="ch">\n</span><span class="st">&quot;</span>, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+
+        <span class="co">/* kirim pesan ke klien */</span>
+        <span class="dt">char</span> server_msg[] = <span class="st">&quot;+OK Welcome, type your message.</span><span class="ch">\n</span><span class="st">&quot;</span>;
+        write(connfd, server_msg, <span class="kw">sizeof</span> server_msg);
+
+        <span class="co">/* baca pesan dari klien */</span>
+        <span class="dt">char</span> client_msg[<span class="dv">80</span>] = {<span class="dv">0</span>};
+        read(connfd, client_msg, <span class="kw">sizeof</span> client_msg);
+        printf(<span class="st">&quot;Client said: %s&quot;</span>, client_msg);
+
+        <span class="co">/* balas pesan ke klien */</span>
+        <span class="dt">char</span> server_reply[] = <span class="st">&quot;+OK Message accepted. Bye!</span><span class="ch">\n</span><span class="st">&quot;</span>;
+        write(connfd, server_reply, <span class="kw">sizeof</span> server_reply);
+
+        <span class="co">/* 5. Tutup koneksi klien */</span>
+        close(connfd);
+    }
+
+    <span class="co">/* Tutup soket */</span>
+    close(listenfd);
+
+    <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre>
+<p>Jalankan program di atas. Jika gagal <em>binding</em>, gunakan port lainnya.</p>
+<pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">./server</span></code></pre>
+<p>Untuk sementara, gunakan <code>telnet</code> sebagai klien untuk melakukan komunikasi dengan server.</p>
+<pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">telnet</span> 127.0.0.1 2000</code></pre>
+<p>Coba buat dua sesi klien yang mengakses server secara bersamaan, apa yang terjadi? Mengapa demikian? Apa yang bisa diperbaiki pada server agar bisa melayani beberapa klien sekaligus?</p>
+<!--
+
+### Kode program server dalam bahasa Python
+
+`server.py`
+
+```python
+import socket
+import sys
+
+HOST = ''
+PORT = 2001
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print 'Socket created.'
+
+s.bind((HOST, PORT))
+print 'Socket bind complete.'
+
+s.listen(5)
+print 'Socket now listening...'
+
+while 1:
+    #wait to accept a connection (blocking)
+    conn, addr = s.accept()
+    print 'Connected with ' + addr[0] + ':' + str(addr[1])
+
+    conn.send('+OK Welcome, type your message.\n');
+
+    data = conn.recv(80)
+    print 'Client said: ' + data
+
+    reply = '+OK Message accepted. Bye!\n'
+    conn.send(reply)
+
+    conn.close()
+
+s.close()
+
+```
+-->
+<h2 id="kode-program-untuk-klien">Kode Program untuk Klien</h2>
+<p><code>client.c</code></p>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="ot">#include &lt;stdlib.h&gt;</span>
+<span class="ot">#include &lt;unistd.h&gt;</span>
+<span class="ot">#include &lt;arpa/inet.h&gt;</span>
+
+<span class="dt">int</span> main()
+{
+    <span class="dt">int</span> socketfd;
+    <span class="dt">char</span> *server_host = <span class="st">&quot;127.0.0.1&quot;</span>;
+    <span class="dt">int</span>   server_port = <span class="dv">2000</span>;
+
+    <span class="co">/* 1. Membuat soket */</span>
+    socketfd = socket(AF_INET, SOCK_STREAM, <span class="dv">0</span>);
+
+    <span class="kw">struct</span> sockaddr_in server_addr = {              <span class="co">/* alamat server tujuan */</span>
+        .sin_family = AF_INET,
+        .sin_port = htons(server_port)
+    };
+    inet_aton(server_host, &amp;server_addr.sin_addr);
+
+    <span class="co">/* 2. Koneksi ke server --&gt; soket aktif */</span>
+    connect(socketfd, (<span class="kw">struct</span> sockaddr*) &amp;server_addr, <span class="kw">sizeof</span> server_addr);
+
+    <span class="co">/* baca pesan dari server */</span>
+    <span class="dt">char</span> server_msg[<span class="dv">80</span>] = {<span class="dv">0</span>};
+    read(socketfd, server_msg, <span class="kw">sizeof</span> server_msg);
+    printf(<span class="st">&quot;%s&quot;</span>, server_msg);
+
+    <span class="co">/* kirim pesan ke server */</span>
+    printf(<span class="st">&quot;&gt; &quot;</span>);
+    <span class="dt">char</span> client_msg[<span class="dv">80</span>] = {<span class="dv">0</span>};
+    fgets(client_msg, <span class="kw">sizeof</span> client_msg, stdin);
+    write(socketfd, client_msg, <span class="kw">sizeof</span> client_msg);
+
+    <span class="co">/* baca balasan dari server */</span>
+    <span class="dt">char</span> server_reply[<span class="dv">80</span>] = {<span class="dv">0</span>};
+    read(socketfd, server_reply, <span class="kw">sizeof</span> server_reply);
+    printf(<span class="st">&quot;%s&quot;</span>, server_reply);
+
+    <span class="co">/* 3. Tutup koneksi ke server */</span>
+    close(socketfd);
+
+    <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre>
+<p>Jalankan program di atas.</p>
+<pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">./client</span></code></pre>
+<!--
+
+### Contoh klien HTTP ke suatu server
+
+`client-http.c`
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+int main()
+{
+    char *server_host = "172.18.88.20";
+    int   server_port = 80;
+
+    /* 1. Membuat soket */
+    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    struct sockaddr_in server_addr = {              /* alamat server tujuan */
+        .sin_family = AF_INET,
+        .sin_port = htons(server_port)
+    };
+    inet_aton(server_host, &server_addr.sin_addr);
+
+    /* 2. Koneksi ke server -> soket aktif */
+    connect(socketfd, (struct sockaddr*) &server_addr, sizeof server_addr);
+
+    /* kirim pesan ke server */
+    char client_msg[] = "GET / HTTP/1.1\nHost: 172.18.88.20\n\n";
+    write(socketfd, client_msg, sizeof client_msg);
+
+    /* baca pesan dari server */
+    char server_msg[4096] = {0};
+    read(socketfd, server_msg, sizeof server_msg);
+
+    /* cetak pesan dari server */
+    puts(server_msg);
+
+    /* 3. Tutup koneksi ke server */
+    close(socketfd);
+    exit(EXIT_SUCCESS);
+}
+
+```
+
+-->
+<h2 id="tugas">Tugas</h2>
+<ul>
+<li>buat program klien untuk koneksi ke server web ipb.ac.id, simpan outputnya ke dalam buffer sebesar 100KB</li>
+<li>ubah kode program server dan klien di atas ke dalam bahasa Python</li>
+</ul>
+<!--
+
+```python
+import socket
+
+HOST = '127.0.0.1'
+PORT = 2001
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+s.connect((HOST, PORT))
+
+server_msg = s.recv(80)
+print server_msg,
+
+client_msg = raw_input('> ')
+s.send(client_msg)
+
+server_reply = s.recv(80)
+print server_reply
+
+s.close()
+
+```
+-->
+<h2 id="referensi">Referensi</h2>
+<ul>
+<li>Davis K, Turner JW, Yocom N. 2004. <em>The Definitive Guide to Linux Network Programming</em>. Berkeley (US-CA): Apress.</li>
+</ul>
+</body>
+</html>

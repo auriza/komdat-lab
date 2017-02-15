@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Auriza Akbar">
+  <meta name="dcterms.date" content="2015-01-01">
+  <title>Komunikasi Data dan Jaringan Komputer Praktikum #5</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="etc/style.css">
+</head>
+<body>
+<header>
+<h1 class="title">Komunikasi Data dan Jaringan Komputer Praktikum #5</h1>
+<h2 class="author">Auriza Akbar</h2>
+<h3 class="date">2015</h3>
+</header>
+<nav id="TOC">
+<ul>
+<li><a href="#pemrograman-soket---paralelisme">Pemrograman Soket - Paralelisme</a><ul>
+<li><a href="#multi-processing">Multi-Processing</a></li>
+<li><a href="#multi-threading">Multi-Threading</a></li>
+<li><a href="#hybrid-prefork---prethread">Hybrid (Prefork - Prethread)</a></li>
+<li><a href="#multithreading-python">Multithreading (Python)</a></li>
+<li><a href="#tugas">Tugas</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="pemrograman-soket---paralelisme">Pemrograman Soket - Paralelisme</h1>
+<p>Tujuan: mahasiswa akan dapat membuat program soket multikoneksi pada Linux</p>
+<p>Pada praktikum sebelumnya, telah dibuat aplikasi server yang hanya bisa melayani satu klien tiap satu waktu. Aplikasi server ini kurang berguna pada dunia nyata. Klien lain harus menunggu lama untuk dapat dilayani oleh server. Untuk mengatasinya, aplikasi server biasanya menggunakan arsitektur paralel, baik menggunakan multiprocessing, multithreading, maupun kombinasi keduanya.</p>
+<p>Contoh aplikasi server pada dunia nyata adalah Apache HTTP server, yang memiliki beberapa MPM (multi-processing module). Dua MPM yang paling banyak digunakan:</p>
+<ul>
+<li><code>prefork</code>: menggunakan multiprocessing, memerlukan lebih banyak memori, memiliki banyak fitur, biasa dipakai bersama dengan modul PHP</li>
+<li><code>worker</code>: hibrida, gabungan antara multiprocessing dan multithreading, lebih ringan tetapi fiturnya terbatas</li>
+</ul>
+<h2 id="multi-processing">Multi-Processing</h2>
+<figure>
+<img src="https://lh3.googleusercontent.com/-eC1RTH6qgbU/UaVvCCgv8-I/AAAAAAAACYk/ZNeZJspHEq0/w734-h467-no/prefork.png" alt="Prefork" /><figcaption>Prefork</figcaption>
+</figure>
+<ul>
+<li>satu proses melayani satu klien</li>
+<li>menggunakan <code>fork()</code> untuk menduplikasi proses</li>
+<li>keuntungan:
+<ul>
+<li>implementasinya sederhana</li>
+<li>jika salah satu proses child crash, proses lain tidak terpengaruh</li>
+</ul></li>
+<li>kerugian:
+<ul>
+<li>komunikasi antar-proses tidak efisien</li>
+<li>memerlukan banyak resource untuk membuat proses baru</li>
+</ul></li>
+<li>proses parent harus memanggil <code>wait()</code> untuk menunggu sampai proses child selesai, supaya tidak terjadi proses zombie</li>
+<li>contoh implementasi: prefork (proses child dibuat terlebih dahulu sebanyak jumlah tertentu)</li>
+<li>kompilasi dan coba jalankan beberapa klien sekaligus yang mengakses server</li>
+</ul>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="ot">#include &lt;stdlib.h&gt;</span>
+<span class="ot">#include &lt;unistd.h&gt;</span>
+<span class="ot">#include &lt;arpa/inet.h&gt;</span>
+<span class="ot">#include &lt;sys/wait.h&gt;</span>
+
+<span class="ot">#define NPROCESS 3</span>
+
+<span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span> *argv[])
+{
+    <span class="dt">int</span> port = atoi(argv[<span class="dv">1</span>]);                       <span class="co">/* port server */</span>
+    <span class="dt">int</span> i, server_id = <span class="dv">0</span>, client_id = <span class="dv">0</span>;
+
+    <span class="co">/* 1. Membuat soket */</span>
+    <span class="dt">int</span> listen_socket = socket(AF_INET, SOCK_STREAM, <span class="dv">0</span>);
+    <span class="kw">if</span> (listen_socket == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error creating socket.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+
+    <span class="kw">struct</span> sockaddr_in server_addr = {              <span class="co">/* alamat server */</span>
+        .sin_family = AF_INET,
+        .sin_port = htons(port),
+        .sin_addr.s_addr = INADDR_ANY
+    };
+
+    <span class="co">/* 2. Memberikan alamat ke soket */</span>
+    <span class="kw">if</span> (bind(listen_socket, (<span class="kw">struct</span> sockaddr*) &amp;server_addr, <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in)) == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error binding.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+
+    <span class="co">/* 3. Listen --&gt; soket pasif */</span>
+    <span class="kw">if</span> (listen(listen_socket, <span class="dv">5</span>) == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error listening.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+    printf(<span class="st">&quot;[SERVER] listening...</span><span class="ch">\n</span><span class="st">&quot;</span>);
+
+    <span class="co">/* 4. Prefork sebanyak jumlah proses yang diinginkan */</span>
+    <span class="kw">for</span> (i = <span class="dv">0</span>; i &lt; NPROCESS; i++) {
+        printf(<span class="st">&quot;[SERVER] creating child-%d</span><span class="ch">\n</span><span class="st">&quot;</span>, i);
+        <span class="kw">if</span> (fork() == <span class="dv">0</span>) {                          <span class="co">/* jika proses anak, maka akan menerima koneksi dari klien */</span>
+            server_id = i;
+            <span class="kw">while</span> (<span class="dv">1</span>) {
+                <span class="kw">struct</span> sockaddr_in client_addr;             <span class="co">/* alamat klien */</span>
+                socklen_t client_addr_size = <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in);
+
+                <span class="co">/* 5. Membuat soket untuk menerima koneksi dari klien */</span>
+                <span class="dt">int</span> accept_socket = accept(listen_socket, (<span class="kw">struct</span> sockaddr*) &amp;client_addr, &amp;client_addr_size);
+                <span class="kw">if</span> (accept_socket == -<span class="dv">1</span>) {
+                    fprintf(stderr, <span class="st">&quot;Error accepting accept_socket.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+                    exit(EXIT_FAILURE);
+                }
+                client_id++;
+
+                <span class="co">/* cetak alamat klien */</span>
+                printf(<span class="st">&quot;[SERVER] child-%d accepting client-%d.%d from %s:%d</span><span class="ch">\n</span><span class="st">&quot;</span>, server_id, server_id, client_id, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+
+                <span class="co">/* kirim pesan ke klien */</span>
+                <span class="dt">char</span> server_msg[] = <span class="st">&quot;+OK Welcome, type your message.</span><span class="ch">\n</span><span class="st">&quot;</span>;
+                write(accept_socket, server_msg, <span class="kw">sizeof</span> server_msg);
+
+                <span class="co">/* baca pesan dari klien */</span>
+                <span class="dt">char</span> client_msg[<span class="dv">100</span>] = {<span class="dv">0</span>};
+                read(accept_socket, client_msg, <span class="kw">sizeof</span> client_msg);
+                printf(<span class="st">&quot;[CLIENT] client-%d.%d said: %s&quot;</span>, server_id, client_id, client_msg);
+
+                <span class="co">/* balas pesan ke klien */</span>
+                <span class="dt">char</span> server_reply[] = <span class="st">&quot;+OK Message accepted. Bye!</span><span class="ch">\n</span><span class="st">&quot;</span>;
+                write(accept_socket, server_reply, <span class="kw">sizeof</span> server_reply);
+
+                <span class="co">/* 6. Tutup koneksi klien */</span>
+                close(accept_socket);
+            }
+        }
+    }
+    wait(NULL);                                     <span class="co">/* parent menunggu sampai child selesai */</span>
+
+    <span class="co">/* tutup soket */</span>
+    close(listen_socket);
+    exit(EXIT_SUCCESS);
+}</code></pre>
+<h2 id="multi-threading">Multi-Threading</h2>
+<figure>
+<img src="https://lh3.googleusercontent.com/-ABQVPgKWlmk/UaVvCJcFxnI/AAAAAAAACYg/BrZOYfDBzgk/w715-h488-no/prethread.png" alt="Prethread" /><figcaption>Prethread</figcaption>
+</figure>
+<ul>
+<li>satu thread melayani satu klien</li>
+<li>menggunakan <code>pthread_create()</code> untuk membuat thread baru</li>
+<li>thread adalah <em>lighweight process</em> yang berbagi pakai memori utama dengan proses parent</li>
+<li>keuntungan:
+<ul>
+<li>thread menggunakan <em>resource</em> yang lebih sedikit</li>
+<li>thread memiliki waktu <em>context-switch</em> yang lebih cepat</li>
+</ul></li>
+<li>kerugian
+<ul>
+<li>aplikasi multi-thread kurang stabil dibandingkan dengan aplikasi multi-proses</li>
+<li>karena ruang memori dipakai bersama, satu thread yang crash akan mempengaruhi thread lain</li>
+</ul></li>
+<li>contoh implementasi: prethread (thread dibuat terlebih dahulu sebanyak jumlah tertentu)</li>
+<li>kompilasi dengan menambahkan opsi <code>-pthread</code> dan jalankan beberapa klien sekaligus untuk mengakses server</li>
+</ul>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="ot">#include &lt;stdlib.h&gt;</span>
+<span class="ot">#include &lt;unistd.h&gt;</span>
+<span class="ot">#include &lt;arpa/inet.h&gt;</span>
+<span class="ot">#include &lt;pthread.h&gt;</span>
+
+<span class="ot">#define NTHREAD 3</span>
+
+<span class="dt">int</span> i, client_id = <span class="dv">0</span>;
+
+<span class="dt">void</span> *accept_connection(<span class="dt">void</span> *arg);
+
+<span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span> *argv[])
+{
+    <span class="dt">int</span> port = atoi(argv[<span class="dv">1</span>]);                       <span class="co">/* port server */</span>
+    pthread_t thread[NTHREAD];
+
+    <span class="co">/* 1. Membuat soket */</span>
+    <span class="dt">int</span> listen_socket = socket(AF_INET, SOCK_STREAM, <span class="dv">0</span>);
+    <span class="kw">if</span> (listen_socket == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error creating socket.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+
+    <span class="kw">struct</span> sockaddr_in server_addr = {              <span class="co">/* alamat server */</span>
+        .sin_family = AF_INET,
+        .sin_port = htons(port),
+        .sin_addr.s_addr = INADDR_ANY
+    };
+
+    <span class="co">/* 2. Memberikan alamat ke soket */</span>
+    <span class="kw">if</span> (bind(listen_socket, (<span class="kw">struct</span> sockaddr*) &amp;server_addr, <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in)) == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error binding.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+
+    <span class="co">/* 3. Listen --&gt; soket pasif */</span>
+    <span class="kw">if</span> (listen(listen_socket, <span class="dv">5</span>) == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error listening.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+    printf(<span class="st">&quot;[SERVER] listening...</span><span class="ch">\n</span><span class="st">&quot;</span>);
+
+    <span class="co">/* 4. Pre-threading */</span>
+    <span class="kw">for</span> (i = <span class="dv">0</span>; i &lt; NTHREAD; i++) {
+        printf(<span class="st">&quot;[SERVER] creating thread-%d</span><span class="ch">\n</span><span class="st">&quot;</span>, i);
+        pthread_create(&amp;thread[i], NULL, accept_connection, (<span class="dt">void</span> *)&amp;listen_socket);
+        sleep(<span class="dv">1</span>);
+    }
+    <span class="kw">for</span> (i = <span class="dv">0</span>; i &lt; NTHREAD; i++) {                 <span class="co">/* parent menunggu sampai tiap thread selesai */</span>
+        pthread_join(thread[i], NULL);
+    }
+
+    <span class="co">/* tutup soket */</span>
+    close(listen_socket);
+    exit(EXIT_SUCCESS);
+}
+
+<span class="dt">void</span> *accept_connection(<span class="dt">void</span> *arg)
+{
+    <span class="dt">int</span> listen_socket = *(<span class="dt">int</span> *)arg;
+    <span class="dt">int</span> tid = i;
+
+    <span class="kw">while</span> (<span class="dv">1</span>) {
+        <span class="kw">struct</span> sockaddr_in client_addr;             <span class="co">/* alamat klien */</span>
+        socklen_t client_addr_size = <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in);
+
+        <span class="co">/* 5. Membuat soket untuk menerima koneksi dari klien */</span>
+        <span class="dt">int</span> accept_socket = accept(listen_socket, (<span class="kw">struct</span> sockaddr*) &amp;client_addr, &amp;client_addr_size);
+        <span class="kw">if</span> (accept_socket == -<span class="dv">1</span>) {
+            fprintf(stderr, <span class="st">&quot;Error accepting accept_socket.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+            exit(EXIT_FAILURE);
+        }
+        <span class="dt">int</span> cid = client_id++;
+
+        <span class="co">/* cetak alamat klien */</span>
+        printf(<span class="st">&quot;[SERVER] thread-%d accepting client-%d from %s:%d</span><span class="ch">\n</span><span class="st">&quot;</span>, tid, cid, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+
+        <span class="co">/* kirim pesan ke klien */</span>
+        <span class="dt">char</span> server_msg[] = <span class="st">&quot;+OK Welcome, type your message.</span><span class="ch">\n</span><span class="st">&quot;</span>;
+        write(accept_socket, server_msg, <span class="kw">sizeof</span> server_msg);
+
+        <span class="co">/* baca pesan dari klien */</span>
+        <span class="dt">char</span> client_msg[<span class="dv">100</span>] = {<span class="dv">0</span>};
+        read(accept_socket, client_msg, <span class="kw">sizeof</span> client_msg);
+        printf(<span class="st">&quot;[CLIENT] client-%d said: %s&quot;</span>, cid, client_msg);
+
+        <span class="co">/* balas pesan ke klien */</span>
+        <span class="dt">char</span> server_reply[] = <span class="st">&quot;+OK Message accepted. Bye!</span><span class="ch">\n</span><span class="st">&quot;</span>;
+        write(accept_socket, server_reply, <span class="kw">sizeof</span> server_reply);
+
+        <span class="co">/* 6. Tutup koneksi klien */</span>
+        close(accept_socket);
+    }
+}</code></pre>
+<h2 id="hybrid-prefork---prethread">Hybrid (Prefork - Prethread)</h2>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="ot">#include &lt;stdlib.h&gt;</span>
+<span class="ot">#include &lt;unistd.h&gt;</span>
+<span class="ot">#include &lt;arpa/inet.h&gt;</span>
+<span class="ot">#include &lt;sys/wait.h&gt;</span>
+<span class="ot">#include &lt;pthread.h&gt;</span>
+
+<span class="ot">#define NPROCESS 3</span>
+<span class="ot">#define NTHREAD  3</span>
+
+<span class="dt">int</span> i, j, server_id, client_id = <span class="dv">0</span>;
+
+<span class="dt">void</span> *accept_connection(<span class="dt">void</span> *arg);
+
+<span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span> *argv[])
+{
+    <span class="dt">int</span> port = atoi(argv[<span class="dv">1</span>]);                       <span class="co">/* port server */</span>
+    pthread_t thread[NTHREAD];
+
+    <span class="co">/* 1. Membuat soket */</span>
+    <span class="dt">int</span> listen_socket = socket(AF_INET, SOCK_STREAM, <span class="dv">0</span>);
+    <span class="kw">if</span> (listen_socket == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error creating socket.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+
+    <span class="kw">struct</span> sockaddr_in server_addr = {              <span class="co">/* alamat server */</span>
+        .sin_family = AF_INET,
+        .sin_port = htons(port),
+        .sin_addr.s_addr = INADDR_ANY
+    };
+
+    <span class="co">/* 2. Memberikan alamat ke soket */</span>
+    <span class="kw">if</span> (bind(listen_socket, (<span class="kw">struct</span> sockaddr*) &amp;server_addr, <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in)) == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error binding.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+
+    <span class="co">/* 3. Listen --&gt; soket pasif */</span>
+    <span class="kw">if</span> (listen(listen_socket, <span class="dv">5</span>) == -<span class="dv">1</span>) {
+        fprintf(stderr, <span class="st">&quot;Error listening.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+        exit(EXIT_FAILURE);
+    }
+    printf(<span class="st">&quot;[SERVER] listening...</span><span class="ch">\n</span><span class="st">&quot;</span>);
+
+    <span class="co">/* 4a. Preforking sebanyak jumlah proses yang diinginkan */</span>
+    <span class="kw">for</span> (i = <span class="dv">0</span>; i &lt; NPROCESS; i++) {
+        printf(<span class="st">&quot;[SERVER] creating child-%d</span><span class="ch">\n</span><span class="st">&quot;</span>, i);
+        <span class="kw">if</span> (fork() == <span class="dv">0</span>) {                          <span class="co">/* jika proses anak, akan melakukan prethreading */</span>
+
+            <span class="co">/* 4b. Prethreading, tiap thread menerima koneksi dari klien */</span>
+            <span class="kw">for</span> (j = <span class="dv">0</span>; j &lt; NTHREAD; j++) {
+                printf(<span class="st">&quot;[SERVER] child-%d creating thread-%d%d</span><span class="ch">\n</span><span class="st">&quot;</span>, i, i, j);
+                pthread_create(&amp;thread[j], NULL, accept_connection, (<span class="dt">void</span> *)&amp;listen_socket);
+                sleep(<span class="dv">1</span>);
+            }
+            <span class="kw">for</span> (j = <span class="dv">0</span>; j &lt; NTHREAD; j++) {                 <span class="co">/* parent menunggu sampai tiap thread selesai */</span>
+                pthread_join(thread[j], NULL);
+            }
+        }
+    }
+    wait(NULL);
+
+
+    <span class="co">/* tutup soket */</span>
+    close(listen_socket);
+    exit(EXIT_SUCCESS);
+}
+
+<span class="dt">void</span> *accept_connection(<span class="dt">void</span> *arg)
+{
+    <span class="dt">int</span> listen_socket = *(<span class="dt">int</span> *)arg;
+    <span class="dt">int</span> tid = i;
+
+    <span class="kw">while</span> (<span class="dv">1</span>) {
+        <span class="kw">struct</span> sockaddr_in client_addr;             <span class="co">/* alamat klien */</span>
+        socklen_t client_addr_size = <span class="kw">sizeof</span> (<span class="kw">struct</span> sockaddr_in);
+
+        <span class="co">/* 5. Membuat soket untuk menerima koneksi dari klien */</span>
+        <span class="dt">int</span> accept_socket = accept(listen_socket, (<span class="kw">struct</span> sockaddr*) &amp;client_addr, &amp;client_addr_size);
+        <span class="kw">if</span> (accept_socket == -<span class="dv">1</span>) {
+            fprintf(stderr, <span class="st">&quot;Error accepting accept_socket.</span><span class="ch">\n</span><span class="st">&quot;</span>);
+            exit(EXIT_FAILURE);
+        }
+        <span class="dt">int</span> cid = client_id++;
+
+        <span class="co">/* cetak alamat klien */</span>
+        printf(<span class="st">&quot;[SERVER] thread-%d accepting client-%d from %s:%d</span><span class="ch">\n</span><span class="st">&quot;</span>, tid, cid, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+
+        <span class="co">/* kirim pesan ke klien */</span>
+        <span class="dt">char</span> server_msg[] = <span class="st">&quot;+OK Welcome, type your message.</span><span class="ch">\n</span><span class="st">&quot;</span>;
+        write(accept_socket, server_msg, <span class="kw">sizeof</span> server_msg);
+
+        <span class="co">/* baca pesan dari klien */</span>
+        <span class="dt">char</span> client_msg[<span class="dv">100</span>] = {<span class="dv">0</span>};
+        read(accept_socket, client_msg, <span class="kw">sizeof</span> client_msg);
+        printf(<span class="st">&quot;[CLIENT] client-%d said: %s&quot;</span>, cid, client_msg);
+
+        <span class="co">/* balas pesan ke klien */</span>
+        <span class="dt">char</span> server_reply[] = <span class="st">&quot;+OK Message accepted. Bye!</span><span class="ch">\n</span><span class="st">&quot;</span>;
+        write(accept_socket, server_reply, <span class="kw">sizeof</span> server_reply);
+
+        <span class="co">/* 6. Tutup koneksi klien */</span>
+        close(accept_socket);
+    }
+}</code></pre>
+<h2 id="multithreading-python">Multithreading (Python)</h2>
+<p><em>Thread on demand</em>, setiap ada koneksi masuk, server akan membuat satu <em>thread</em> untuk melayaninya.</p>
+<pre class="sourceCode python"><code class="sourceCode python"><span class="ch">import</span> socket
+<span class="ch">import</span> sys
+<span class="ch">from</span> thread <span class="ch">import</span> *
+
+HOST = <span class="st">&#39;&#39;</span>
+PORT = <span class="dv">2001</span>
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+<span class="dt">print</span> <span class="st">&#39;Socket created&#39;</span>
+
+s.bind((HOST, PORT))
+<span class="dt">print</span> <span class="st">&#39;Socket bind complete&#39;</span>
+
+s.listen(<span class="dv">5</span>)
+<span class="dt">print</span> <span class="st">&#39;Socket now listening&#39;</span>
+
+<span class="kw">def</span> clientthread(conn):
+    conn.send(<span class="st">&#39;+OK Welcome, type your message.</span><span class="ch">\n</span><span class="st">&#39;</span>);
+
+    data = conn.recv(<span class="dv">80</span>)
+    <span class="dt">print</span> <span class="st">&#39;Client said: &#39;</span> + data
+
+    reply = <span class="st">&#39;+OK Message accepted. Bye!</span><span class="ch">\n</span><span class="st">&#39;</span>
+    conn.send(reply)
+
+    conn.close()
+
+<span class="kw">while</span> <span class="dv">1</span>:
+    conn, addr = s.accept()
+    <span class="dt">print</span> <span class="st">&#39;Connected with &#39;</span> + addr[<span class="dv">0</span>] + <span class="st">&#39;:&#39;</span> + <span class="dt">str</span>(addr[<span class="dv">1</span>])
+
+    start_new_thread(clientthread ,(conn,))
+
+s.close()</code></pre>
+<h2 id="tugas">Tugas</h2>
+<p>Sebutkan 10 aplikasi server dan cari tahu metode paralel apa yang dipakai:</p>
+<ul>
+<li>multiprocessing</li>
+<li>multithreading</li>
+<li>hibrida (multiprocessing + multithreading)</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Auriza Akbar">
+  <meta name="dcterms.date" content="2015-01-01">
+  <title>Komunikasi Data dan Jaringan Komputer Praktikum #9</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link rel="stylesheet" href="etc/style.css">
+</head>
+<body>
+<header>
+<h1 class="title">Komunikasi Data dan Jaringan Komputer Praktikum #9</h1>
+<h2 class="author">Auriza Akbar</h2>
+<h3 class="date">2015</h3>
+</header>
+<nav id="TOC">
+<ul>
+<li><a href="#aplikasi-server-dan-wireless-pada-packet-tracer">Aplikasi Server dan Wireless pada Packet Tracer</a><ul>
+<li><a href="#dhcp">DHCP</a></li>
+<li><a href="#multiple-switch">Multiple Switch</a></li>
+<li><a href="#wireless-ap">Wireless AP</a></li>
+<li><a href="#servis-lainnya">Servis lainnya</a></li>
+<li><a href="#tugas">Tugas</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="aplikasi-server-dan-wireless-pada-packet-tracer">Aplikasi Server dan Wireless pada Packet Tracer</h1>
+<ul>
+<li>Hubungkan 3 PC dengan menggunakan switch</li>
+<li>alamat jaringan LAN yang akan dipakai: <code>192.168.0.0/24</code></li>
+</ul>
+<h2 id="dhcp">DHCP</h2>
+<ul>
+<li>Tambahkan satu server DHCP, hubungkan ke switch
+<ul>
+<li>set alamat IP server statis: <code>192.168.0.2/24</code></li>
+<li>aktifkan servis DHCP: <code>Config &gt; Services &gt; DHCP</code>
+<ul>
+<li>range alamat IP yang akan dialokasikan secara dinamis: <code>192.168.0.[11-250]/24</code></li>
+<li>klik <strong>Save</strong></li>
+</ul>
+<pre><code>Default Gateway: 192.168.0.1
+DNS Server     : 192.168.0.2
+Start IP Addres: 192.168.0.11
+Subnet Mask    : 255.255.255.0
+Max Num of User: 240</code></pre></li>
+<li>set alamat IP semua PC menjadi DHCP: <code>Desktop &gt; IP Configuration &gt; DHCP</code>, kita akan memakai server DHCP untuk memberikan alamat IP secara dinamis</li>
+<li>pastikan PC telah mendapatkan alamat IP dari server DHCP</li>
+<li>cek konektivitas dengan ping broadcast</li>
+</ul></li>
+</ul>
+<h2 id="multiple-switch">Multiple Switch</h2>
+<ul>
+<li>Tambahkan satu switch baru dan beberapa PC
+<ul>
+<li>contoh kasus: kita ingin menambahkan PC baru ke dalam jaringan, tetapi port pada switch pertama sudah terpakai semua, maka perlu switch tambahan untuk memperluas jaringan LAN.</li>
+<li>hubungkan switch baru ke switch pertama dengan kabel crossover</li>
+<li>pastikan PC yang terhubung pada switch baru sudah mendapat alamat IP dari server DHCP</li>
+<li>cek konektivitas dengan ping broadcast, amati juga simulasi berjalannya paket ARP dan ICMP (gunakan filter paket)</li>
+</ul></li>
+</ul>
+<h2 id="wireless-ap">Wireless AP</h2>
+<ul>
+<li>Tambahkan satu wireless AP dan beberapa laptop
+<ul>
+<li>contoh kasus: kita ingin laptop juga dapat terhubung ke jaringan LAN melalui wireless</li>
+<li>set SSID, channel, dan security pada AP</li>
+<li>matikan laptop, ganti modul network interface dari ethernet menjadi wireless (PT-LAPTOP-NM-1W), hidupkan laptop kembali</li>
+<li>set koneksi wifi ke AP jaringan LAN pada laptop</li>
+</ul></li>
+</ul>
+<h2 id="servis-lainnya">Servis lainnya</h2>
+<ul>
+<li>Cobakan servis HTTP pada server
+<ul>
+<li>modifikasi isi halaman web pada server</li>
+<li>akses alamat IP server dari browser pada salah satu PC di jaringan LAN</li>
+</ul></li>
+<li>Cobakan servis DNS pada server
+<ul>
+<li>DNS: servis yang menerjemahkan dari nama domain menjadi alamat IP</li>
+<li>berikan nama domain untuk server ini, misal: jarkom.net</li>
+<li>akses alamat domain di atas dari browser salah satu PC di jaringan LAN</li>
+</ul></li>
+</ul>
+<h2 id="tugas">Tugas</h2>
+<p>Lengkapilah tabel berikut ini! Kumpulkan pada selembar kertas!</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Atribut</th>
+<th style="text-align: left;">HTTP</th>
+<th style="text-align: left;">DHCP</th>
+<th style="text-align: left;">DNS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Kepanjangan</td>
+<td style="text-align: left;">Hypertext Transfer Protocol</td>
+<td style="text-align: left;">………………………………..</td>
+<td style="text-align: left;">………………………………..</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Standar</td>
+<td style="text-align: left;">RFC 2616</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Layer</td>
+<td style="text-align: left;">Aplikasi</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Transport</td>
+<td style="text-align: left;">TCP</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Port</td>
+<td style="text-align: left;">80</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fungsi</td>
+<td style="text-align: left;">komunikasi data pada WWW</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Jenis request</td>
+<td style="text-align: left;">GET, POST, HEAD, PUT, …</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Aplikasi server</td>
+<td style="text-align: left;">Apache, Nginx, IIS</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Aplikasi klien</td>
+<td style="text-align: left;">Firefox, Chrome, Opera</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Auriza Akbar">
+  <meta name="dcterms.date" content="2015-01-01">
+  <title>Komunikasi Data dan Jaringan Komputer Praktikum #11</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link rel="stylesheet" href="etc/style.css">
+</head>
+<body>
+<header>
+<h1 class="title">Komunikasi Data dan Jaringan Komputer Praktikum #11</h1>
+<h2 class="author">Auriza Akbar</h2>
+<h3 class="date">2015</h3>
+</header>
+<nav id="TOC">
+<ul>
+<li><a href="#static-routing"><em>Static Routing</em></a><ul>
+<li><a href="#dua-router-untuk-menghubungkan-jaringan-yang-berjauhan-wan">Dua Router Untuk Menghubungkan Jaringan yang Berjauhan (WAN)</a></li>
+<li><a href="#latihan">Latihan</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="static-routing"><em>Static Routing</em></h1>
+<h2 id="dua-router-untuk-menghubungkan-jaringan-yang-berjauhan-wan">Dua Router Untuk Menghubungkan Jaringan yang Berjauhan (WAN)</h2>
+<ul>
+<li>lanjutan dari yang sebelumnya, tambahkan jaringan baru <code>192.168.3.0/24</code></li>
+<li>tambahkan satu router baru
+<ul>
+<li>hubungkan router ini dengan jaringan baru tersebut</li>
+<li>hubungkan router lama dengan router ini dengan kabel fiber</li>
+</ul></li>
+<li><p>konfigurasi interface di router lama (R0)</p>
+<pre><code>enable
+configure terminal
+    interface FastEthernet4/0
+        ip address 192.168.0.1 255.255.255.0
+        no shutdown
+        exit
+show running-config
+disable</code></pre></li>
+<li><p>konfigurasi interface di router baru (R1)</p>
+<pre><code>enable
+configure terminal
+    hostname R1
+    enable secret *****
+    interface FastEthernet0/0
+        ip address 192.168.3.1 255.255.255.0
+        ip helper-address 192.168.1.2
+        no shutdown
+        exit
+    interface FastEthernet4/0
+        ip address 192.168.0.2 255.255.255.0
+        no shutdown
+        exit
+    exit
+show running-config
+disable</code></pre></li>
+<li><p>konfigurasi routing statik di R0</p>
+<pre><code>enable
+configure terminal
+    ip route 192.168.3.0 255.255.255.0 192.168.0.2
+    end
+show ip route
+disable</code></pre></li>
+<li><p>konfigurasi routing statik di R1</p>
+<pre><code>enable
+configure terminal
+    ip route 192.168.1.0 255.255.255.0 192.168.0.1
+    ip route 192.168.2.0 255.255.255.0 192.168.0.1
+    end
+show ip route
+disable</code></pre></li>
+<li>tambahkan DHCP pool baru di server untuk jaringan <code>192.168.3.0/24</code></li>
+<li>set konfigurasi IP semua PC yang baru: DHCP</li>
+<li><p>cek koneksi antara jaringan baru dengan jaringan lama</p></li>
+</ul>
+<figure>
+<img src="etc/11/static.png" alt="Router WAN" /><figcaption>Router WAN</figcaption>
+</figure>
+<h2 id="latihan">Latihan</h2>
+<p>Setting tiga router untuk menghubungkan WAN yang berbeda.</p>
+</body>
+</html>

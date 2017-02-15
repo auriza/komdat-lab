@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Auriza Akbar">
+  <meta name="dcterms.date" content="2015-01-01">
+  <title>Komunikasi Data dan Jaringan Komputer Praktikum #6</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link rel="stylesheet" href="etc/style.css">
+</head>
+<body>
+<header>
+<h1 class="title">Komunikasi Data dan Jaringan Komputer Praktikum #6</h1>
+<h2 class="author">Auriza Akbar</h2>
+<h3 class="date">2015</h3>
+</header>
+<nav id="TOC">
+<ul>
+<li><a href="#protokol-layer-aplikasi">Protokol Layer Aplikasi</a><ul>
+<li><a href="#http">HTTP</a></li>
+<li><a href="#ftp">FTP</a></li>
+<li><a href="#smtp">SMTP</a></li>
+<li><a href="#pop3">POP3</a></li>
+<li><a href="#tugas">Tugas</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="protokol-layer-aplikasi">Protokol Layer Aplikasi</h1>
+<p>Protokol komunikasi adalah prosedur dan aturan standar dalam berkomunikasi. Sebuah klien yang ingin berkomunikasi dengan server harus mengikuti protokol yang sesuai. Misalnya klien untuk aplikasi web seperti Firefox, menggunakan protokol HTTP untuk berkomunikasi dengan server. Namun, mekanisme protokol ini umumnya jarang diperlihatkan pada aplikasi berbasis GUI. Untuk melihat mekanisme protokol pada layer aplikasi, kita akan menggunakan program <code>telnet</code> dan <code>openssl s_client</code>. Umumnya, protokol pada layer aplikasi ini berbasis teks ASCII, sehingga mudah untuk dipahami.</p>
+<figure>
+<img src="etc/6/internet-layering.png" alt="Layer jaringan TCP/IP (sumber: Wikipedia)" /><figcaption>Layer jaringan TCP/IP (sumber: Wikipedia)</figcaption>
+</figure>
+<h2 id="http">HTTP</h2>
+<ul>
+<li>Hypertext Transfer Protocol</li>
+<li>dasar komunikasi pada World Wide Web</li>
+<li>menggunakan transport layer TCP, port 80</li>
+<li><p>standar terbaru: HTTP/1.1</p></li>
+<li>metode <em>request</em> (permintaan dari klien)
+<ul>
+<li><code>GET</code>: permintaan untuk mengambil data</li>
+<li><code>HEAD</code>: sama seperti GET tapi hanya mengambil <em>header</em>-nya saja</li>
+<li><code>POST</code>: permintaan untuk menambahkan data, misalnya <em>form submission</em></li>
+<li>…</li>
+</ul></li>
+<li>status <em>request</em> (respon dari server)
+<ul>
+<li><code>100 Continue</code></li>
+<li><code>200 OK</code></li>
+<li><code>206 Partial Content</code></li>
+<li><code>301 Moved Permanently</code></li>
+<li><code>400 Bad Request</code></li>
+<li><code>401 Unauthorized</code></li>
+<li><code>403 Forbidden</code></li>
+<li><code>404 Not Found</code></li>
+<li>…</li>
+</ul></li>
+<li>contoh GET
+<pre>
+$ <b>telnet cs.ipb.ac.id 80</b>
+<i>Trying 202.124.205.86...
+Connected to cs.ipb.ac.id.
+Escape character is '^]'.</i>
+<b>GET /~jika/ HTTP/1.1
+Host: cs.ipb.ac.id</b>
+
+HTTP/1.1 200 OK
+Date: Tue, 14 May 2013 01:37:20 GMT
+Server: Apache/2.2.22 (Ubuntu)
+Last-Modified: Sun, 03 Mar 2013 15:17:01 GMT
+...</pre>
+</li>
+<li>contoh POST (FIXME: dead link)
+<pre>
+$ <b>telnet 172.18.88.20 80</b>
+<i>Trying 172.18.88.20...
+Connected to 172.18.88.20.
+Escape character is '^]'.</i>
+<b>POST /~auriza/xhtml5/pesan.php HTTP/1.1
+Host: 172.18.88.20
+Content-type: application/x-www-form-urlencoded
+Content-length: 48
+
+submit=Kirim&pesan=hola&nama=auriza&jkelamin=L</b>
+
+...</pre></li>
+<li><p><em>header</em> HTTP dapat juga diamati menggunakan ‘Web Console’ (Ctrl+Shift+K) pada Firefox.</p></li>
+</ul>
+<h2 id="ftp">FTP</h2>
+<ul>
+<li>File Transfer Protocol</li>
+<li>protokol standar untuk transfer file via jaringan</li>
+<li>menggunakan transport layer TCP, port 20 dan 21
+<ul>
+<li>server menerima perintah: port 21</li>
+<li>server mengirimkan data : port 20 (mode aktif) atau port &gt;1023 (mode pasif)</li>
+</ul></li>
+<li><p>mode pasif lebih banyak dipakai oleh klien FTP, penjelasan lebih lanjut lihat <a href="http://slacksite.com/other/ftp.html">http://slacksite.com/other/ftp.html</a></p></li>
+<li>perintah FTP
+<ul>
+<li><code>USER</code>: otentikasi nama pengguna</li>
+<li><code>PASS</code>: otentikasi password</li>
+<li><code>STAT</code>: menampilkan status koneksi</li>
+<li><code>PASV</code>: masuk ke mode pasif (klien yang menginisialisasi transfer)</li>
+<li><code>LIST</code>: mengembalikan informasi direktori kerja</li>
+<li><code>CWD</code>: ganti direktori kerja</li>
+<li><code>PWD</code>: cetak direktori kerja</li>
+<li><code>RETR</code>: mengambil file dari server</li>
+<li><code>STOR</code>: menyimpan file ke server</li>
+<li><code>QUIT</code>: memutus koneksi dengan server</li>
+</ul></li>
+<li>contoh komunikasi dengan server FTP <code>ftp.debian.org</code></li>
+<li><p>jika server di atas sibuk, coba ke server FTP <code>172.18.88.20</code> dengan user komdat:jarkom</p></li>
+</ul>
+<pre>
+    $ <b>telnet ftp.debian.org 21</b>
+    <i>Trying 130.89.148.12...
+    Connected to ftp.debian.org.
+    Escape character is '^]'.</i>
+    220 ftp.debian.org FTP server
+    <b>USER anonymous</b>
+    331 Please specify the password.
+    <b>PASS </b>
+    230 Login successful.
+    <b>STAT</b>
+    211-FTP server status:
+         Connected to 114.79.1.167
+         Logged in as ftp
+         TYPE: ASCII
+         No session bandwidth limit
+         Session timeout in seconds is 300
+         Control connection is plain text
+         Data connections will be plain text
+         vsFTPd 2.3.5 - secure, fast, stable
+    211 End of status
+    <b>CWD debian</b>
+    250 Directory successfully changed.
+    <b>PWD</b>
+    257 "/debian"
+    <b>PASV</b>
+    227 Entering Passive Mode (130,89,148,12,147,101). [lihat catatan di bawah]
+    <b>LIST</b>
+    150 Here comes the directory listing.
+    226 Directory send OK.
+    <b>PASV</b>
+    227 Entering Passive Mode (130,89,148,12,179,98).
+    <b>RETR README</b>
+    150 Opening BINARY mode data connection for README (1370 bytes).
+    226 Transfer complete.
+    <b>QUIT</b>
+    221 Goodbye.</pre>
+
+<ul>
+<li>setelah masuk mode <code>PASV</code>, buka satu sesi telnet lain ke alamat yang dikembalikan mode tersebut untuk menangkap transfer data dari server.
+<pre>
+(130,89,148,12,147,101) = 130.89.148.12:(147*256+101) = 130.89.148.12:37733
+
+$ <b>telnet ftp.debian.org 37733</b>
+<i>Trying 130.89.148.12...
+Connected to ftp.debian.org.
+Escape character is '^]'.</i>
+-rw-rw-r--    1 1176     1176         1370 Oct 18 10:05 README
+-rw-rw-r--    1 1176     1176         1290 Jun 26  2010 README.CD-manufacture
+-rw-rw-r--    1 1176     1176         2882 Oct 18 10:06 README.html
+-rw-r--r--    1 1176     1176       183440 Oct 08 01:52 README.mirrors.html
+-rw-r--r--    1 1176     1176        96268 Oct 08 01:52 README.mirrors.txt
+drwxr-sr-x   16 1176     1176         4096 Oct 18 09:56 dists
+drwxr-sr-x    4 1176     1176         4096 Nov 17 07:52 doc
+drwxr-sr-x    3 1176     1176         4096 Aug 15 19:17 indices
+-rw-r--r--    1 1176     1176     10099916 Nov 17 08:59 ls-lR.gz
+drwxr-sr-x    5 1176     1176         4096 Dec 19  2000 pool
+drwxr-sr-x    4 1176     1176         4096 Nov 17  2008 project
+drwxr-xr-x    3 1176     1176         4096 Oct 10  2012 tools
+<i>Connection closed by foreign host.</i></pre>
+
+</li>
+<li>Gunakan program <code>netcat</code> untuk menyimpan hasil transfer ke sebuah file
+<pre>
+$ <b>netcat ftp.debian.org 16521 > README</b></pre>
+
+</li>
+</ul>
+<h2 id="smtp">SMTP</h2>
+<ul>
+<li>Simple Mail Transfer Protocol</li>
+<li>standar untuk pengiriman email melalui Internet</li>
+<li>menggunakan transport layer TCP port 25, 465 (SSL), atau 587 (TLS)</li>
+<li>SMTPS menggunakan TLS atau SSL untuk mengenkripsi pesan</li>
+<li>perintah SMTP
+<ul>
+<li><code>HELO</code>: memperkenalkan diri kepada server</li>
+<li><code>AUTH</code>: otentikasi</li>
+<li><code>MAIL</code>: nama akun pengirim</li>
+<li><code>RCPT</code>: penerima yang dituju</li>
+<li><code>DATA</code>: isi yang akan dikirim, diakhiri dengan tanda satu titik dalam satu baris</li>
+<li><code>QUIT</code>: mengakhiri sesi</li>
+</ul></li>
+<li>enkode <em>username-password</em> untuk otentikasi
+<pre>
+$ <b>printf "\0komdatjarkom2@gmail.com\0ilkomerz" | base64</b>
+AGtvbWRhdGphcmtvbTJAZ21haWwuY29tAGlsa29tZXJ6</pre>
+</li>
+<li>contoh komunikasi dengan server SMTPS
+<pre>
+$ <b>openssl s_client -connect smtp.gmail.com:465 -crlf -ign_eof</b>
+  # atau
+$ <b>openssl s_client -starttls smtp -connect smtp.gmail.com:587 -crlf -ign_eof</b>
+---
+220 mx.google.com ESMTP ... gsmtp
+<b>HELO localhost</b>
+250 mx.google.com at your service
+<b>AUTH PLAIN AGtvbWRhdGphcmtvbTJAZ21haWwuY29tAGlsa29tZXJ6</b>
+235 2.7.0 Accepted
+<b>MAIL FROM: &lt;komdatjarkom2@gmail.com&gt;</b>
+250 2.1.0 OK ... gsmtp
+<b>RCPT TO: &lt;auriza.akbar@gmail.com&gt;</b>
+250 2.1.5 OK ... gsmtp
+<b>DATA</b>
+354  Go ahead ... gsmtp
+<b>From: "Komdat Jarkom" &lt;komdatjarkom2@gmail.com&gt;
+To: "Auriza Akbar" &lt;auriza.akbar@gmail.com&gt;
+Subject: SMTP test
+
+Hello, this is sent from my terminal directly using SMTP.
+.</b>
+250 2.0.0 OK 1426637013 ... gsmtp
+<b>QUIT</b>
+221 2.0.0 closing connection ... gsmtp</pre>
+</li>
+</ul>
+<figure>
+<img src="etc/6/gmail.png" alt="Email telah terkirim" /><figcaption>Email telah terkirim</figcaption>
+</figure>
+<h2 id="pop3">POP3</h2>
+<ul>
+<li>Post Office Protocol, versi 3</li>
+<li>digunakan oleh klien untuk mengambil email dari server</li>
+<li>menggunakan transport layer TCP, port 110 atau 995 (POP3S)</li>
+<li><p>POP3S menggunakan TLS atau SSL untuk mengenkripsi pesan</p></li>
+<li>perintah POP3
+<ul>
+<li><code>USER</code>: nama pengguna pada server</li>
+<li><code>PASS</code>: password</li>
+<li><code>STAT</code>: jumlah dan ukuran total semua surat</li>
+<li><code>LIST</code>: daftar surat dan ukurannya</li>
+<li><code>RETR</code>: mengambil surat dengan nomor tertentu</li>
+<li><code>DELE</code>: menghapus surat dengan nomor tertentu</li>
+<li><code>RSET</code>: reset kotak surat, membatalkan semua penghapusan</li>
+<li><code>QUIT</code>: mengakhiri sesi</li>
+</ul></li>
+</ul>
+<!--
+
+- opsional: tambahkan sertifikat server
+<pre>
+    $ <b>openssl s_client -connect pop.gmail.com:995</b>
+      # keluar dan salin sertifikat ke berkas ~/.certs/gmail-pop.pem
+    $ # <b>openssl x509 -fingerprint -md5 -noout -in ~/.certs/gmail-pop.pem</b>
+    $ <b>c_rehash ~/.certs/</b></pre>
+
+-->
+
+<ul>
+<li>contoh komunikasi dengan server POP3S
+<pre>
+$ <b>openssl s_client -connect pop.gmail.com:995<!-- -CApath ~/.certs --></b>
+---
++OK Gpop ready for requests from ...
+<b>USER komdatjarkom2@gmail.com</b>
++OK send PASS
+<b>PASS ilkomerz</b>
++OK Welcome.
+<b>STAT</b>
++OK 4 22204
+<b>LIST</b>
++OK 4 messages (22204 bytes)
+1 6920
+2 4836
+3 7750
+4 2698
+.
+<b>rETR 4</b>
++OK message follows
+...
+Subject: New Email
+From: Auriza Akbar &lt;auriza.akbar@gmail.com&gt;
+To: komdatjarkom2@gmail.com
+
+Test.
+
+--
+Auriza Akbar
+.
+<b>DELE 4</b>
++OK marked for deletion
+<b>QUIT</b>
+DONE</pre>
+</li>
+<li><strong>Catatan</strong>. Program <code>openssl s_client</code> memiliki <em>bug</em>: jika masukan perintah diawali huruf ‘R’, maka program akan melakukan RENEGOTIATING dengan server. Untuk itu perintah yang diawali dengan ‘R’ harus diubah menjadi huruf kecil, misalnya <code>RETR</code> menjadi <code>rETR</code>.</li>
+</ul>
+<!--
+- **Catatan**. Khusus untuk Gmail, tambahkan kata kunci `recent:` pada username untuk mengambil email terbaru dari server POP3 Gmail, misalnya: `USER recent:auriza.akbar@gmail.com`.
+-->
+
+<!--
+
+```
+$ openssl s_client -connect mail.ipb.ac.id:465 -crlf -ign_eof
+---
+220 mail.ipb.ac.id ESMTP Postfix
+HELO localhost
+250 mail.ipb.ac.id
+AUTH PLAIN AGF1cml6YQBzdHVybWdlaXN0
+235 2.7.0 Authentication successful
+MAIL FROM: <auriza@ipb.ac.id>
+250 2.1.0 Ok
+RCPT TO: <auriza.akbar@gmail.com>
+250 2.1.5 Ok
+DATA
+354 End data with <CR><LF>.<CR><LF>
+Subject: Telnet test
+
+Sent from my terminal.
+.
+250 2.0.0 Ok: queued as 0CB1B640C04
+QUIT
+221 2.0.0 Bye
+```
+-->
+
+<h2 id="tugas">Tugas</h2>
+<p>Gunakan SMTP langsung untuk mengirim email dari akun email kalian masing-masing ke <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x6b;&#x6f;&#x6d;&#100;&#x61;&#116;&#106;&#x61;&#114;&#x6b;&#x6f;&#x6d;&#50;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#x6b;&#x6f;&#x6d;&#100;&#x61;&#116;&#106;&#x61;&#114;&#x6b;&#x6f;&#x6d;&#50;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;</noscript> dengan isi sebagai berikut (sesuaikan dengan nama dan NIM kalian):</p>
+<pre><code>Subject: SMTP G6...
+From: ...
+To: komdatjarkom2@gmail.com
+
+Hello, this is from ...
+
+.</code></pre>
+</body>
+</html>
