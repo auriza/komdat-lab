@@ -2,7 +2,6 @@
 % Auriza Rahmad Akbar
 % 2014
 
-<!--
 # Materi Praktikum
 
 1. Network Operating System [2]
@@ -39,4 +38,3 @@
 12. Packet Tracer: dynamic routing (RIP)
 13. Packet Tracer: virtual LAN
 14. Packet Tracer: latihan routing
--->

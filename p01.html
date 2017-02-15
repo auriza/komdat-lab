@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <meta name="author" content="Auriza Akbar">
   <meta name="dcterms.date" content="2016-01-01">
-  <title>Komunikasi Data dan Jaringan Komputer Praktikum #1</title>
+  <title>Komunikasi Data dan Jaringan Komputer Praktikum 01</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
 div.sourceCode { overflow-x: auto; }
@@ -52,7 +52,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </head>
 <body>
 <header>
-<h1 class="title">Komunikasi Data dan Jaringan Komputer Praktikum #1</h1>
+<h1 class="title">Komunikasi Data dan Jaringan Komputer Praktikum 01</h1>
 <h2 class="author">Auriza Akbar</h2>
 <h3 class="date">2016</h3>
 </header>
@@ -63,7 +63,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#setting-port-forwarding-vm">Setting <em>port-forwarding</em> VM</a></li>
 <li><a href="#instalasi-lamp-linux-apache-mysql-php">Instalasi LAMP (Linux Apache MySQL PHP)</a></li>
 <li><a href="#instalasi-aplikasi-web-wordpress">Instalasi aplikasi web Wordpress</a></li>
-<li><a href="#praktikum-pekan-depan-cabling">Praktikum Pekan Depan: <em>Cabling</em></a></li>
+<li><a href="#praktikum-pekan-depan-cabling">Praktikum pekan depan: <em>cabling</em></a></li>
 </ul></li>
 </ul>
 </nav>
@@ -71,7 +71,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>Tujuan praktikum ini adalah agar mahasiswa dapat menginstal aplikasi web pada <em>virtual private server</em> (VPS) berbasis Linux. VPS menyediakan fleksibilitas untuk menginstal aplikasi server apa saja, tidak terbatas hanya pada aplikasi web berbasis PHP. Layanan VPS banyak tersedia (misal: <a href="https://www.niagahoster.co.id/cloud-vps-hosting">Niagahoster</a>, <a href="https://www.digitalocean.com/">DigitalOcean</a>, dan Amazon) dengan harga yang bervariasi sesuai dengan spesifikasi server yang ditawarkan.</p>
 <h2 id="membuat-vm-ubuntu-server">Membuat VM Ubuntu Server</h2>
 <p>Telah tersedia <em>virtual disk image</em> (VDI) instalasi Ubuntu Server 16.04 di direktori <code>/opt/vm</code>. Salin <em>file</em> <code>ubuntu-server.vdi</code> tersebut ke direktori <em>home</em> anda. Kemudian, buat VM baru pada VirtualBox dengan tipe “Ubuntu 64-bit”. Gunakan <em>virtual disk</em> yang sudah disalin tadi.</p>
-<p><strong>PS</strong>: Bagi yang ingin mencoba instalasi Ubuntu Server dari awal, silahkan unduh <a href="https://www.ubuntu.com/download/server">Ubuntu Server</a> dan ikuti petunjuk instalasinya di …</p>
+<p><em>PS</em>: bagi yang ingin mencoba instalasi Ubuntu Server dari awal, silahkan unduh <a href="https://www.ubuntu.com/download/server">Ubuntu Server</a> dan ikuti petunjuknya di <a href="http://www.tecmint.com/installation-of-ubuntu-16-04-server-edition/">sini</a>.</p>
 <h2 id="setting-port-forwarding-vm">Setting <em>port-forwarding</em> VM</h2>
 <p>Tujuannya adalah agar VM bisa diakses dari luar melalui alamat IP <em>host</em> (<em>localhost</em>). Masuk ke ‘<em>Settings -&gt; Network -&gt; Advanced -&gt; Port Forwarding</em>’ dan tambahkan dua aturan berikut.</p>
 <table>
@@ -113,7 +113,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># instal SSH</span>
 <span class="kw">sudo</span> apt update
 <span class="kw">sudo</span> apt install ssh</code></pre></div>
-<p>Setelah SSH di VM terinstal, kita bisa mengakses VM secara <em>remote</em>. Buka terminal di <em>host</em> untuk login <em>remote</em> SSH ke <em>port</em> 2222.</p>
+<p>Setelah terinstal SSH, kita bisa mengakses VM secara <em>remote</em>. Buka terminal di <em>host</em> untuk login <em>remote</em> ke <em>port</em> 2222.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># akses remote dari host</span>
 <span class="kw">ssh</span> student@localhost -p 2222
 
@@ -144,10 +144,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <figure>
 <img src="etc/1/wordpress.png" alt="Halaman utama Wordpress" /><figcaption>Halaman utama Wordpress</figcaption>
 </figure>
-<h2 id="praktikum-pekan-depan-cabling">Praktikum Pekan Depan: <em>Cabling</em></h2>
+<h2 id="praktikum-pekan-depan-cabling">Praktikum pekan depan: <em>cabling</em></h2>
 <p>Setiap praktikan membawa:</p>
 <ul>
-<li>kabel LAN Cat5 (minimal 1 meter)</li>
+<li>kabel LAN Cat 5 (minimal 1 meter)</li>
 <li>konektor RJ-45 3 buah</li>
 <li>gunting</li>
 <li><em>crimping tool</em> (jika ada)</li>
@@ -170,9 +170,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 Cek dengan mengakses halaman web <http://localhost:8888> dan `ssh` ke VM.
 
-~~~bash
+```bash
 ssh -p 2222 user@localhost
-~~~
+```
 
 
 ## Tugas: Instalasi aplikasi web OwnCloud
@@ -184,36 +184,36 @@ Kumpulkan pada saat akhir praktikum.
 Anda boleh mencoba instalasi aplikasi web berbasis PHP lainnya seperti VanillaForums, GNUSocial, SilverStripe, GetSimple, atau Ghost (berbasis Node.js).
 Semua berkas instalasi dapat diunduh di <http://cs.ipb.ac.id/~auriza/komdat/webapp/>.
 
-~~~bash
+```bash
 wget "https://download.owncloud.org/community/owncloud-7.0.4.tar.bz2"
 sudo tar -xjf owncloud-7.0.4.tar.bz2 -C /var/www/html/
 sudo chown -R www-data:www-data /var/www/html/owncloud
-mysql -u root -p -vv -e "\
-  CREATE DATABASE owncloud; \
-  CREATE USER owncloud IDENTIFIED BY 'password'; \
+mysql -u root -p -vv -e "
+  CREATE DATABASE owncloud;
+  CREATE USER owncloud IDENTIFIED BY 'password';
   GRANT ALL PRIVILEGES ON owncloud.* TO owncloud;"
 sudo aptitude install php5-gd
 sudo service apache2 reload
-~~~
+```
 
 Buka halaman <http://localhost:8888/owncloud> untuk meneruskan instalasi.
 
 ### Setting PHP untuk OwnCloud
 
-~~~bash
+```bash
 sudo editor /etc/php5/apache2/php.ini
   post_max_size = 2G
   upload_max_filesize = 2G
   output_buffering = 0
   date.timezone = Asia/Jakarta
-~~~
+```
 
 ![Halaman utama OwnCloud](etc/1/owncloud.png)
 
 -->
 <!--
 - Vanilla Forums
-    ~~~bash
+    ```bash
     wget "http://cdn.vanillaforums.com/www.vanillaforums.org/addons/YJLWYW9YJXT7.zip"
     sudo unzip vanilla-core-2-1-3.zip -d /var/www/html/
     sudo chown -R www-data:www-data /var/www/html/vanilla
@@ -222,19 +222,19 @@ sudo editor /etc/php5/apache2/php.ini
       CREATE DATABASE vanilla; \
       GRANT ALL PRIVILEGES ON vanilla.* TO vanilla;"
     w3m "http://localhost/vanilla"
-    ~~~
+    ```
 -->
 <!--
 ## Instalasi aplikasi web Node.js (ghost)
 
-    ~~~bash
+    ```bash
     $ sudo aptitude install nodejs nodejs-legacy npm
     $ wget "https://ghost.org/zip/ghost-0.5.2.zip"
     $ unzip ghost-0.5.2.zip -d ghost
     $ cd ghost
     $ npm install --production
     $ npm start
-    ~~~
+    ```
 -->
 </body>
 </html>
