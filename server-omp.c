@@ -22,9 +22,9 @@ int main()
     if (listen(server, QUEUE) == 0)
         puts("listening...");
 
+    #pragma omp parallel private (client, cl_addr, data)
     while (1) {
         client = accept(server, (struct sockaddr*)&cl_addr, &(socklen_t){sizeof cl_addr});
-
         write(client, welcome, sizeof welcome);
 
         memset(data, 0, sizeof data);
@@ -32,7 +32,6 @@ int main()
         printf("[%s:%d]: %s", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port), data);
 
         write(client, goodbye, sizeof goodbye);
-
         close(client);
     }
 
