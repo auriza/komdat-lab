@@ -22,7 +22,7 @@ int main()
     if (listen(server, QUEUE) == 0)
         puts("listening...");
 
-    #pragma omp parallel private (client, cl_addr, data)
+    #pragma omp parallel private(client, cl_addr, data) num_threads(8)
     while (1) {
         client = accept(server, (struct sockaddr*)&cl_addr, &(socklen_t){sizeof cl_addr});
         write(client, welcome, sizeof welcome);
