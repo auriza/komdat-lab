@@ -4,6 +4,6 @@
 2. [*Network Cabling*](p02.md)
 3. [Infrastruktur *Wireless*](p03.md)
 4. [Pemrograman Soket](p04.md)
-5. [Pemrograman Soket *Multithreading*](p05.md)
-6. [Protokol *Layer* Aplikasi](p06.md)
-7. [Aplikasi Jaringan](p07.md)
+5. [Protokol *Layer* Aplikasi](p06.md)
+6. [Aplikasi Jaringan](p07.md)
+7. Presentasi Projek
