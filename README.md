@@ -7,3 +7,5 @@
 5. [Protokol *Layer* Aplikasi](p06.md)
 6. [Aplikasi Jaringan](p07.md)
 7. Presentasi Projek
+8. [Pengenalan Packet Tracer](p08.md)
+9. [Aplikasi Server dan *Wireless* pada Packet Tracer](p09.md)
