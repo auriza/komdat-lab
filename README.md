@@ -8,4 +8,5 @@
 6. [Aplikasi Jaringan](p07.md)
 7. Presentasi Projek
 8. [Pengenalan Packet Tracer](p08.md)
-9. [Aplikasi Server dan *Wireless* pada Packet Tracer](p09.md)
+9. [Aplikasi Server dan *Wireless*](p09.md)
+10. [*Router* Jaringan Lokal](p10.md)
