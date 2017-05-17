@@ -10,3 +10,4 @@
 8. [Pengenalan Packet Tracer](p08.md)
 9. [Aplikasi Server dan *Wireless*](p09.md)
 10. [*Router* Jaringan Lokal](p10.md)
+11. [*Static Routing*](p11.md)
