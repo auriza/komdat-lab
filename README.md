@@ -10,4 +10,7 @@
 8. [Pengenalan Packet Tracer](p08.md)
 9. [Aplikasi Server dan *Wireless*](p09.md)
 10. [*Router* Jaringan Lokal](p10.md)
-11. [*Static Routing*](p11.md)
+11. [*Routing* Statis](p11.md)
+12. [*Routing* Dinamis: RIPv2](p12.md)
+13. [*Routing* Dinamis: OSPF](p13.md)
+14. Ujian Praktikum: *Routing*
