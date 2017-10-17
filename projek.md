@@ -26,8 +26,8 @@ Pilihan aplikasi web dapat dilihat di: <https://github.com/Kickball/awesome-self
 
 ## Laporan
 
-Format Markdown, simpan di GitHub atau GitLab CS-IPB <http://code.cs.ipb.ac.id>.
-Templat laporan: <templat.md>
+Format Markdown, simpan di GitHub atau GitLab CS-IPB (<http://code.cs.ipb.ac.id>).
+Lihat templat laporan [di sini](templat.md).
 
 Contoh laporan terbaik tahun lalu: <https://github.com/OneStyd/prestashop>
 
@@ -35,5 +35,6 @@ Contoh laporan terbaik tahun lalu: <https://github.com/OneStyd/prestashop>
 ## Penilaian
 
 - Laporan (50%)
-<!--2. Instalasi di VPS CS-IPB (25%)-->
 - Presentasi dan demo (50%)
+
+<!--2. Instalasi di VPS CS-IPB (25%)-->
