@@ -3,14 +3,16 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define HOST    "162.213.33.66"
+//#define HOST    "38.109.180.24"
+#define HOST    "192.30.252.153"
 #define PORT    80
 
 int main()
 {
     int                 server;
     struct sockaddr_in  sv_addr     = {AF_INET, htons(PORT), {inet_addr(HOST)}};
-    char                request[]   = "GET / HTTP/1.0\nHost: xubuntu.org\n\n";
+    //char                request[]   = "GET / HTTP/1.0\r\nHost: defmacro.com\r\n\r\n";
+    char                request[]   = "GET /tutorial-basics.html HTTP/1.0\r\nHost: libdill.org\r\n\r\n";
     char                reply[1024] = {0};
 
 
